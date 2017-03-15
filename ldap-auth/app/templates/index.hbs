@@ -1,0 +1,14 @@
+<form action="http://192.168.56.101:8080/login" method="POST">
+  <div>
+    <input name="username" placeholder="username" />
+  </div>
+  <div>
+    <input name="password" placeholder="password" />
+  </div>
+  <div>
+    <input type="submit" value="Login" />
+  </div>
+  <div>
+    {{if unathourized "Login failed" ""}}
+  </div>
+</form>
