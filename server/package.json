@@ -9,10 +9,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "assert": "^1.4.1",
     "basicauth-middleware": "^2.0.0",
-    "express": "*",
-    "passport": "*",
     "body-parser": "*",
+    "bson-ext": "^1.0.5",
+    "express": "*",
+    "mongodb": "^2.2.24",
+    "passport": "*",
     "passport-ldapauth": "*"
   }
 }
