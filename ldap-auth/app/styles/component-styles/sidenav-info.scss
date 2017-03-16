@@ -1,0 +1,28 @@
+& {
+  .edit-sidenav {
+    width: 50%;
+  }
+  .edit-panel-toolbar {
+    background-color: color($primary, '700') !important;
+    box-shadow: 2px 2px 5px #acacac;
+
+    padding: 10px 0px;
+    h3 {
+      font-size: 0.9em;
+    }
+  }
+  .edit-panel-content {
+    padding: 10px;
+
+    .content {
+      padding: 5px;
+
+      div {
+        white-space: nowrap;
+      }
+    }
+    .edit-category-buttons {
+      width: 100%;
+    }
+  }
+}

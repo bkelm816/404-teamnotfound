@@ -1,0 +1,19 @@
+{{#liquid-if previewOpen}}
+  {{#paper-dialog class="image-preview-dialog" clickOutsideToClose=true onClose=(action "closeDialog")
+    class=(concat "image-preview-dialog" (if maxSize " max-size" ""))}}
+    {{#paper-dialog-content}}
+      <div class="layout-row layout-align-center-center image-preview-container">
+        <img src={{image}} ondblclick={{action 'onImageDblClick'}}/>
+      </div>
+    {{/paper-dialog-content}}
+    {{#paper-dialog-actions class="layout-row layout-align-center"}}
+      <div class="arrow-container">
+        {{toolbar/toolbar-button click=(action back) type='arrowBack'}}
+      </div>
+      {{#paper-button class="close-preview" primary=true raised=true onClick=(action "closeDialog")}}Close{{/paper-button}}
+      <div class="arrow-container">
+        {{toolbar/toolbar-button click=(action forward) type='arrowForward'}}
+      </div>
+    {{/paper-dialog-actions}}
+  {{/paper-dialog}}
+{{/liquid-if}}

@@ -1,0 +1,30 @@
+{{#liquid-if dialogOpen}}
+  {{#paper-dialog  clickOutsideToClose=true onClose=(action "closeDialog")}}
+      {{#if (or deleteSuccessful deleteError)}}
+        {{#paper-dialog-content class="dialog-content"}}
+          <div style="min-width: 280px;">
+            <p>
+              {{#if deleteSuccessful}}
+                {{modelType}} "{{modelName}}" deleted.
+              {{else}}
+                Error deleting {{modelType}} "{{modelName}}": {{deleteError}}
+              {{/if}}
+            </p>
+          </div>
+        {{/paper-dialog-content}}
+        {{#paper-dialog-actions class="layout-row layout-align-center"}}
+          {{#paper-button primary=true onClick=(action "closeDialog")}}Ok{{/paper-button}}
+        {{/paper-dialog-actions}}
+      {{else}}
+        {{#paper-dialog-content class="dialog-content"}}
+          <p>
+            Are you sure you want to delete {{modelType}} "{{modelName}}" ?
+          </p>
+        {{/paper-dialog-content}}
+        {{#paper-dialog-actions class="layout-row layout-align-center"}}
+          {{#paper-button primary=true onClick=(action confirmDelete)}}Confirm{{/paper-button}}
+          {{#paper-button primary=true onClick=(action "closeDialog")}}Cancel{{/paper-button}}
+        {{/paper-dialog-actions}}
+      {{/if}}
+  {{/paper-dialog}}
+{{/liquid-if}}

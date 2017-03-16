@@ -1,0 +1,25 @@
+{{#paper-sidenav
+  class="md-whiteframe-z2 info-sidenav"
+  open=open
+  lockedOpen=false
+  position="right"
+  name="edit-panel"
+  closeOnClick=false
+  onToggle=(action (mut open))
+}}
+  {{#paper-toolbar class="edit-panel-toolbar"}}
+    {{#paper-toolbar-tools class="flex"}}
+      <h3>Info</h3>
+    {{/paper-toolbar-tools}}
+  {{/paper-toolbar}}
+  {{#paper-content class="edit-panel-content layout-column"}}
+    <div class="layout-row">
+      <div class="content layout-column">
+        {{yield}}
+      </div>
+    </div>
+    <div class="edit-category-buttons flex layout-row layout-align-center">
+      {{#paper-button primary=true onClick=(action 'close')}}Close{{/paper-button}}
+    </div>
+  {{/paper-content}}
+{{/paper-sidenav}}

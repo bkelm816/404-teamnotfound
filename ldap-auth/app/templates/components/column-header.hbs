@@ -1,0 +1,11 @@
+<div class="column-header">
+  {{title}}
+  {{#if (eq column property)}}
+    {{#if (eq sort "asc")}}
+      {{paper-icon "arrow-drop-down"}}
+    {{/if}}
+    {{#if (eq sort "desc")}}
+      {{paper-icon "arrow-drop-up"}}
+    {{/if}}
+  {{/if}}
+</div>

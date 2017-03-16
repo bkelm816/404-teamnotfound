@@ -1,0 +1,300 @@
+{{#paper-card class="file-manager" as |card|}}
+  {{#card.content}}
+    <div class="layout-row buttons-container layout-align-start-center">
+      <div class="layout-column">
+        <div class="layout-row">
+          {{toolbar/toolbar-button click=(action 'changeDisplayType') type=(if defaultDisplay 'viewModule' 'viewList')}}
+          {{toolbar/toolbar-button click=(action 'backOrForward' 'back') type='arrowBack'}}
+          {{toolbar/toolbar-button click=(action 'backOrForward' 'forward') type='arrowForward'}}
+          {{toolbar/toolbar-button click=(action 'refresh') type='refresh'}}
+          {{toolbar/toolbar-button click=(action 'home' true) type='home'}}
+          {{toolbar/toolbar-button click=(action 'toggleInfo') type='info'}}
+
+          {{#if cwd.write}}
+            {{#toolbar/toolbar-button type='upload'}}
+              {{#popover-on-component
+                onShow=(action "setFilePickerVar" true) onDestroy=(action "setFilePickerVar" false)
+                isShown=filePickerOpen enableLazyRendering=true
+                side='bottom' event='click' as |popover|}}
+                <div class="layout-row" style="min-height: 50px; min-width: 100px;">
+                  {{#file-picker class="layout-column layout-align-center-start"
+                    accept=".jpeg,.png"
+                    fileLoaded=(action 'fileLoaded') preview=false}}
+                      Drag here or click to upload a file
+                  {{/file-picker}}
+                </div>
+              {{/popover-on-component}}
+            {{/toolbar/toolbar-button}}
+
+            {{toolbar/toolbar-button click=(action 'openVideoDialog') type='videoLibrary'}}
+          {{/if}}
+
+          {{#if (and selectedFiles.length (not (eq selectedFiles.[0].mime "directory")))}}
+            {{toolbar/toolbar-button click=(action 'openPreviewDialog') type='preview'}}
+            {{toolbar/toolbar-button click=(action 'download') type='download'}}
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="flex layout-column layout-align-end-end">
+        <div class="layout-row layout-align-center-center">
+          {{paper-input class="file-search-input" value=searchText
+            onChange=(action (mut searchText))
+            onKeyDown=(action 'onSearchKeydown')}}
+          {{#paper-button onClick=(action 'resetSearch') iconButton=true}}
+            <div title="Clear">
+              {{paper-icon "clear"}}
+            </div>
+          {{/paper-button}}
+        </div>
+      </div>
+    </div>
+
+    <div class="layout-row directory-container">
+      <div class="layout-column flex-30 directory-tree">
+        {{expandable-directory-tree node=directoryTree root=true
+          selectedCategory=(mut cwd)
+          changeCWD=(action 'changeCWD')}}
+      </div>
+
+      <div class="layout-column flex files-container" onClick={{action "deselect" bubbles=false}}>
+        {{#if fetchingDirectory}}
+          <div class="layout-column layout-align-center-center">
+            {{paper-progress-circular diameter=200}}
+          </div>
+        {{else}}
+          {{#if (not defaultDisplay)}}
+            {{#paper-list class="file-list"}}
+              {{#each formattedFiles as |file index|}}
+                {{#paper-item
+                  class=(concat file.hash
+                    (concat " file-item-block no-deselect-area " (get-array-element fileItemsClassNames index)))
+                  onClick=(action "onClickFile" file)}}
+                  <div class="layout-column layout-align-center-center"
+                    ondblclick={{action "onDblClickFile" file}}>
+                    {{#if (eq file.mime "directory")}}
+                      {{paper-icon icon="folder" size=48}}
+                    {{else}}
+                      <img class="tmb-large" src={{file.tmb}} />
+                    {{/if}}
+                    <label class="file-name">
+                      {{#if (and renaming (eq renamingId file.hash))}}
+                        {{paper-input-autofocus value=newName
+                          onChange=(action (mut newName))
+                          onBlur=(action 'renameFile' file)
+                          onKeyDown=(action 'onRenameInputKeydown' 'renameFile')}}
+                      {{else}}
+                        {{file.name}}
+                      {{/if}}
+                      {{tooltip-on-element text=file.name side='bottom' enableLazyRendering=true}}
+                    </label>
+                  </div>
+                {{/paper-item}}
+              {{/each}}
+            {{/paper-list}}
+          {{else}}
+            <div class="data-table flex">
+              <div class="table-header no-deselect-area">
+                <table>
+                  <thead>
+                    <tr class="column-titles">
+                      <th class="name-column">
+                        {{column-header title="Name" property="name" column=column sort=sort
+                              columnHeaderClicked=(action 'columnHeaderClicked')}}
+                      </th>
+                      <th class="permission-column">
+                        {{column-header title="Permission" property="permission" column=column sort=sort
+                              columnHeaderClicked=(action 'columnHeaderClicked')}}
+                      </th>
+                      <th class="modified-date-column">
+                        {{column-header title="Modified" property="modified" column=column sort=sort
+                              columnHeaderClicked=(action 'columnHeaderClicked')}}
+                      </th>
+                      <th class="size-column">
+                        {{column-header title="Size" property="size" column=column sort=sort
+                              columnHeaderClicked=(action 'columnHeaderClicked')}}
+                      </th>
+                      <th class="kind-column">
+                        {{column-header title="Kind" property="kind" column=column sort=sort
+                              columnHeaderClicked=(action 'columnHeaderClicked')}}
+                      </th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+              {{paper-divider id="top-page"}}
+
+              <table class="no-deselect-area file-list">
+                <tbody>
+                  {{#each formattedFiles as |file index|}}
+                    <tr class={{concat file.hash
+                      (concat " file-item data-listing " (get-array-element fileItemsClassNames index))}}
+                      onClick={{action "onClickFile" file}} ondblclick={{action "onDblClickFile" file}}>
+                      <td class="name-column">
+                        <div class="layout-row layout-align-start-center">
+                          {{#if (eq file.mime "directory")}}
+                            {{paper-icon icon="folder"}}
+                          {{else}}
+                            <img class="tmb" src={{file.tmb}} />
+                          {{/if}}
+                          {{#if (and renaming (eq renamingId file.hash))}}
+                            {{paper-input-autofocus value=newName
+                              onChange=(action (mut newName))
+                              onBlur=(action 'renameFile' file)
+                              onKeyDown=(action 'onRenameInputKeydown' 'renameFile' file)}}
+                          {{else}}
+                            <label class="file-name">{{file.name}}</label>
+                            {{tooltip-on-element text=file.name side='bottom' enableLazyRendering=true}}
+                          {{/if}}
+                        </div>
+                      </td>
+                      <td class="permission-column">{{file.permissionString}}</td>
+                      <td class="modified-date-column">{{file.date}}</td>
+                      <td class="size-column">{{file.sizeString}}</td>
+                      <td class="kind-column">{{file.kind}}</td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{/if}}
+        {{/if}}
+      </div>
+    </div>
+
+    <div class="layout-row footer">
+      <div class="layout-column flex-30 layout-align-center">
+        <label class="cwd-path">
+          {{cwdPath}}
+          {{tooltip-on-element text=cwdPath side='top' enableLazyRendering=true}}
+        </label>
+      </div>
+
+      <div class="layout-column flex-40 layout-align-center-center">
+        {{#if (or selectedFilesInfo.length selectedFilesInfo.hash)}}
+          {{#if (not selectedFilesInfo.multiple)}}
+            <div class="layout-row">
+              <label class="flex-auto">
+                {{selectedFilesInfo.name}}
+                {{tooltip-on-element text=selectedFilesInfo.name side='top' enableLazyRendering=true}}
+              </label>
+              <label class="flex-noshrink">
+                {{if (eq selectedFilesInfo.sizeString "0 b") "" (concat ", Size: " selectedFilesInfo.sizeString)}}
+              </label>
+            </div>
+          {{else}}
+            Selected Items: {{selectedFiles.length}}, Size: {{selectedFilesInfo.sizeString}}
+          {{/if}}
+        {{/if}}
+      </div>
+
+      <div class="layout-column flex-30 layout-align-center-end">
+        Items: {{directoryFiles.length}}, Size: {{directoryFiles.sizeString}}
+      </div>
+    </div>
+  {{/card.content}}
+{{/paper-card}}
+
+{{#if videoDialogOpen}}
+  {{#paper-dialog class="video-dialog" clickOutsideToClose=true onClose=(action "closeVideoDialog")}}
+    {{#paper-dialog-content class="video-dialog-content"}}
+      {{#if videoUrlError}}
+        <div class="layout-row layout-align-center-center">
+          <label>{{videoUrlError}}</label>
+        </div>
+      {{else}}
+        <div class="layout-row layout-align-center-center">
+          <div class="flex-30">Video Url: </div>
+          <div class="flex input-container">
+            {{paper-input class="video-url-input" value=videoUrl
+              onChange=(action (mut videoUrl))}}
+          </div>
+        </div>
+        <div class="layout-row layout-align-center-center">
+          <div class="flex-30">Video Name: </div>
+          <div class="flex input-container">
+            {{paper-input class="video-name-input" value=videoName
+              onChange=(action (mut videoName))}}
+          </div>
+        </div>
+      {{/if}}
+    {{/paper-dialog-content}}
+
+    {{#paper-dialog-actions class="layout-row layout-align-center"}}
+      {{#if videoUrlError}}
+        {{#paper-button primary=true onClick=(action "closeVideoDialog")}}Close{{/paper-button}}
+      {{else}}
+        {{#paper-button class="confirm-video" primary=true onClick=(action 'addVideo')}}Confirm{{/paper-button}}
+        {{#paper-button primary=true onClick=(action "closeVideoDialog")}}Cancel{{/paper-button}}
+      {{/if}}
+    {{/paper-dialog-actions}}
+  {{/paper-dialog}}
+{{/if}}
+
+{{image-preview
+  previewOpen=(mut previewOpen)
+  image=selectedFiles.[0].tmb
+  back=(action 'previousOrNextPreview' false)
+  forward=(action 'previousOrNextPreview')}}
+
+{{#sidenav-info open=getInfoOpen}}
+  {{#if (not filesInfo.multiple)}}
+    <div class="layout-row">
+      <div class="layout-column">
+        {{#if (eq filesInfo.mime "directory")}}
+          {{paper-icon icon="folder" size=48}}
+        {{else}}
+          <img style="height: 44px; width: 46px; padding: 2px; padding-left: 0;" src={{filesInfo.tmb}} />
+        {{/if}}
+      </div>
+      <div class="layout-column layout-align-center-start">
+        <div class="layout-row">
+          {{filesInfo.name}}
+        </div>
+        <div class="layout-row">
+          {{filesInfo.kind}}
+        </div>
+      </div>
+    </div>
+
+    <div>Size: {{if (eq filesInfo.mime "directory") "Unknown" filesInfo.sizeString}}</div>
+    <div>Path: {{filesInfo.pathString}}</div>
+    <div>Link: <a target="_blank" href={{filesInfo.link}}>{{filesInfo.name}}</a></div>
+    <div>Modified: {{filesInfo.date}}</div>
+    <div>Permissions: {{filesInfo.permissionString}}</div>
+    <div>Locked: {{if filesInfo.rm 'No' 'Yes'}}</div>
+  {{else}}
+    <div class="layout-row">
+      <div class="layout-column">
+        {{paper-icon icon="content copy" size=48}}
+      </div>
+      <div class="layout-column layout-align-center-start">
+        <div class="layout-row">
+          Items: {{filesInfo.length}}
+        </div>
+      </div>
+    </div>
+
+    <div>Kind: {{filesInfo.kind}}</div>
+    <div>Size: {{if filesInfo.sizeUnknown "Unknown" filesInfo.sizeString}}</div>
+  {{/if}}
+{{/sidenav-info}}
+
+{{delete-confirmation
+  dialogOpen = (mut showDeleteDialog)
+  modelType="Files"
+  modelName=filesToDeleteNames
+  deleteSuccessful=deleteSuccessful
+  deleteError=(mut deleteError)
+  confirmDelete=(action "confirmDelete")
+  exitSuccessful=(action "refresh")}}
+
+{{#each flashMessages.queue as |flash|}}
+  {{#paper-dialog}}
+    {{#paper-dialog-content}}
+      {{flash-message flash=flash}}
+    {{/paper-dialog-content}}
+  {{/paper-dialog}}
+{{/each}}
+
+<a class="download-link"></a>

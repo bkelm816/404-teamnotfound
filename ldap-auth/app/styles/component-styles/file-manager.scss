@@ -1,0 +1,282 @@
+$blue-color: #2196F3;
+$grey-color: #EFEFEF;
+$white-color: #FFFFFF;
+$light-blue-color: #E1E1E1;
+
+& {
+  outline: none;
+
+  .download-link {
+    display: none;
+  }
+
+  .file-manager {
+    md-icon, td, th {
+      -webkit-user-select: none; /* Chrome/Safari */
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+      user-select: none;
+    }
+
+    .file-item, .file-item-block, .file-name {
+      cursor: pointer;
+    }
+
+    .buttons-container {
+      min-height: 40px;
+      background-color: $blue-color;
+      color: white;
+      padding: 7px;
+
+      md-icon {
+        color: white;
+      }
+
+      button {
+        margin: 0;
+        padding: 0;
+      }
+
+      .layout-row div {
+        &:focus {
+          outline: none;
+        }
+      }
+
+      .file-search-input {
+        margin: 0;
+        min-width: 200px;
+
+        input {
+          background-color: $white-color;
+          border: 1px solid $grey-color;
+        }
+
+        .md-errors-spacer {
+          display: none;
+        }
+      }
+    }
+
+    .directory-container {
+      border-top: none;
+      min-height: 500px;
+      height: 600px;
+
+      .files-container {
+        overflow-y: scroll;
+      }
+
+      .directory-tree {
+        background-color: $grey-color;
+        overflow: auto;
+      }
+
+      td, th {
+        padding: 0;
+      }
+
+      .file-name {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+      .table-header {
+        margin-left: 10px;
+      }
+      .file-item td {
+        padding-left: 10px;
+      }
+
+      .name-column {
+        width: 30%;
+        padding-right: 10px;
+
+        label {
+          padding-left: 5px;
+        }
+      }
+      .permission-column {
+        width: 20%;
+        padding-right: 10px;
+      }
+      .modified-date-column {
+        width: 15%;
+        padding-right: 10px;
+      }
+      .size-column {
+        width: 10%;
+        padding-right: 10px;
+      }
+      .kind-column {
+        width: 15%;
+        padding-right: 10px;
+      }
+      .table-header {
+        .name-column {
+          padding-left: 1px;
+        }
+        .permission-column {
+          padding-left: 9px;
+        }
+        .modified-date-column {
+          padding-left: 15px;
+        }
+        .size-column {
+          padding-left: 18px;
+        }
+        .kind-column {
+          padding-left: 21px;
+        }
+      }
+
+      .file-item td div:first-child {
+        &:focus {
+          outline: none;
+        }
+      }
+
+      .file-list {
+        padding: 0;
+
+        .tmb {
+          min-width: 20px;
+          width: 20px;
+          height: 20px;
+          margin: 2px;
+          margin-left: 1px;
+          margin-right: 8px;
+          min-width: 20px;
+        }
+
+        .tmb-large {
+          width: 42px;
+          height: 33px;
+          margin-bottom: 7px;
+        }
+
+        md-icon {
+          margin: 0;
+          margin-right: 5px;
+        }
+
+        .file-item md-input-container {
+          padding: 0 5px;
+          margin: 0;
+          background-color: white;
+
+          .md-errors-spacer {
+            display: none;
+          }
+
+          input {
+            padding: 0;
+            border: none;
+            height: 19px;
+          }
+        }
+
+        .file-item {
+          &.selected td {
+            background-color: color($primary, '100');
+          }
+
+          &.cut td {
+            color: rgba(0, 0, 0, 0.2);
+
+            md-icon {
+              color: rgba(0, 0, 0, 0.2);
+            }
+          }
+        }
+
+        .file-item-block {
+          display: inline-block;
+          width: 95px;
+          overflow: hidden;
+
+          .layout-column {
+            width: 100%;
+          }
+
+          button {
+            padding: 4px 8px;
+          }
+
+          .file-name {
+            text-align: center;
+            height: 25px;
+            cursor: pointer;
+            line-height: 25px;
+
+            &:focus {
+              outline: none;
+            }
+          }
+
+          &:hover {
+            background-color: lighten(color($primary, '50'), 2);
+          }
+          &.selected {
+            background-color: color($primary, '100');
+          }
+          &.cut {
+            color: rgba(0, 0, 0, 0.2);
+
+            md-icon {
+              color: rgba(0, 0, 0, 0.2);
+            }
+          }
+        }
+      }
+    }
+
+    md-card-content {
+      overflow-x: hidden;
+      padding: 0px;
+    }
+    ul {
+      list-style-type: none;
+    }
+    .subtree {
+      padding-left: 30px;
+    }
+    .full-row {
+      position: relative;
+      cursor: pointer;
+      border-bottom : 1px solid $light-blue-color;
+      white-space: nowrap;
+
+      // "hack" to make row full width
+      margin-left: -5000px;
+      padding-left: 5000px;
+      .row-content {
+        padding: 0.3em 0px;
+      }
+
+      transition: background-color 70ms linear;
+      &:hover {
+        background-color: lighten(color($primary, '50'), 2);
+      }
+      &.selected {
+        background-color: color($primary, '100');
+      }
+      &:active {
+        background-color: color($primary, '200');
+      }
+    }
+
+    .footer {
+      min-height: 33px;
+      background-color: $blue-color;
+      color: white;
+      padding: 0 18px;
+
+      .cwd-path {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+    }
+  }
+}

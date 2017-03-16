@@ -1,0 +1,20 @@
+<div class={{treeClassNames}}
+  onClick={{action 'onRowClick'}}>
+  <div class="row-content">
+    {{paper-icon icon="arrow-drop-down"
+      class=(concat (if node.expanded "expanded") " expand-icon")}}
+    {{paper-icon icon=(concat "folder " (if node.expanded "open"))}}
+    <span class="category-name">
+      {{node.name}}
+    </span>
+  </div>
+</div>
+{{#if (and node.children node.expanded)}}
+  <div class="subtree">
+    {{#each node.children as |child|}}
+      {{expandable-directory-tree node=child
+        selectedCategory=(mut selectedCategory)
+        changeCWD=changeCWD}}
+    {{/each}}
+  </div>
+{{/if}}

@@ -1,0 +1,20 @@
+& {
+  .expand-icon {
+    transform: rotate(-90deg);
+    transition: transform 250ms linear;
+  }
+  .expand-icon.expanded {
+    transform: rotate(0deg);
+  }
+
+  md-icon {
+    max-width: 24px;
+  }
+
+  .row-content {
+    -webkit-user-select: none; /* Chrome/Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
+    user-select: none;
+  }
+}
