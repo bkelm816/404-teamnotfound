@@ -50,7 +50,9 @@ passport.use(new LdapStrategy(OPTS));
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Methods", "*");
+  res.header("Access-Control-Request-Method", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   next();
 });
 
@@ -91,6 +93,97 @@ app.get('/info', function(req, res) {
   console.log("Info called");
   res.setHeader("Content-Type", "application/json");
   res.send(JSON.stringify({ result: "Info info" }));
+});
+
+app.get('/file', function(req, res) {
+  var cmd = req.query.cmd;
+  var target = req.query.target;
+
+  var cwd = {
+    id: 0,
+    name: 'test_dir',
+    mime: 'directory',
+    hash: 'dir_0',
+    date: '3/16/2017',
+    read: 1,
+    write: 1,
+    rm: 1,
+  };
+
+  if (target == 'dir_3') {
+    cwd = {
+      id: 3,
+      name: 'test_dir_number_2',
+      mime: 'directory',
+      hash: 'dir_3',
+      phash: 'dir_0',
+      date: '3/16/2017',
+      read: 1,
+      write: 1,
+      rm: 1,
+    };
+  }
+
+  res.setHeader("Content-Type", "application/json");
+  res.send(JSON.stringify({
+    cwd: cwd,
+    files: [
+      {
+        id: 0,
+        name: 'test_dir',
+        mime: 'directory',
+        hash: 'dir_0',
+        date: '3/16/2017',
+        read: 1,
+        write: 1,
+        rm: 1,
+      },
+      {
+        id: 1,
+        name: 'test_file.png',
+        mime: 'image/png',
+        hash: 'file_1',
+        phash: 'dir_0',
+        date: '3/16/2017',
+        read: 1,
+        write: 1,
+        rm: 1,
+      },
+      {
+        id: 3,
+        name: 'test_dir_number_2',
+        mime: 'directory',
+        hash: 'dir_3',
+        phash: 'dir_0',
+        date: '3/16/2017',
+        read: 1,
+        write: 1,
+        rm: 1,
+      },
+      {
+        id: 2,
+        name: 'test_file_number_2.png',
+        mime: 'image/png',
+        hash: 'file_2',
+        phash: 'dir_0',
+        date: '3/16/2017',
+        read: 1,
+        write: 1,
+        rm: 1,
+      },
+      {
+        id: 4,
+        name: 'test_file_number_3.png',
+        mime: 'image/png',
+        hash: 'file_4',
+        phash: 'dir_3',
+        date: '3/16/2017',
+        read: 1,
+        write: 1,
+        rm: 1,
+      }
+    ],
+  }));
 });
 
 console.log("\nServer started");
