@@ -9,6 +9,26 @@ module.exports = function(environment) {
     contentSecurityPolicy: {
       'connect-src': "'self' http://192.168.56.101:8080"
     },
+
+    rootAPI: 'http://192.168.56.101:8080/',
+    mimes: {
+      directory: {
+        name: 'directory',
+        kind: 'Folder',
+        icon: 'folder',
+      },
+      png: {
+        name: 'image/png',
+        kind: 'PNG Image',
+        icon: 'photo',
+      },
+      jpeg: {
+        name: 'image/jpeg',
+        kind: 'JPEG Image',
+        icon: 'photo',
+      },
+    },
+
     EmberENV: {
       FEATURES: {
         // Here you can enable experimental features on an ember canary build

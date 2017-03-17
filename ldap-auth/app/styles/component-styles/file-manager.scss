@@ -2,6 +2,9 @@ $blue-color: #2196F3;
 $grey-color: #EFEFEF;
 $white-color: #FFFFFF;
 $light-blue-color: #E1E1E1;
+$red: #FF0000;
+$green: #32CD32;
+$orange: #FFA500;
 
 & {
   outline: none;
@@ -276,6 +279,93 @@ $light-blue-color: #E1E1E1;
         white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden;
+      }
+    }
+  }
+
+  .data-table {
+    .page-content {
+      margin: 0px 3px;
+      height: calc(100vh - 123px); // 123 px is height of toolbar+ table header
+      overflow-y: auto;
+    }
+    .table-header {
+      margin-right: 16px; // compensating for scrollbar below
+    }
+    table {
+      table-layout: fixed;
+      font-size: 0.8em;
+      border-collapse: collapse;
+      width: 100%;
+
+      .column-header {
+        cursor: pointer;
+      }
+      th {
+        color: color('blue-grey', '800');
+        height: 30px;
+      }
+      td, th {
+        padding: 12px 10px;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      tr td {
+        height: 23px;
+        vertical-align: center;
+        color: #575757;
+        border-bottom: 1px solid #E9E9E9;
+      }
+      tr:nth-child(odd) td {
+        background-color: lighten(color($primary, '50'), 4);
+      }
+
+      tr:nth-child(even) td {
+        background-color: lighten(color($primary, '50'), 5);
+      }
+      td:first-child, th:first-child {
+        width: 20%;
+        padding-left: 30px;
+      }
+      tr:hover td {
+        background-color: color($primary, '50');
+      }
+      td.check-column, th.check-column {
+        width: 10px;
+
+        .red {
+          color: $red;
+        }
+        .green {
+          color: $green;
+        }
+        .orange {
+          color: $orange;
+        }
+      }
+      td.small-column, th.small-column {
+         width: 12%;
+
+         button {
+           float: right;
+           right: 3px;
+         }
+      }
+      td.large-column, th.large-column {
+        width: 25%;
+        min-width: 25em;
+      }
+      td.id-column, th.id-column {
+        width: 20px;
+      }
+      td.date-column, th.date-column {
+        width: 20%;
+      }
+      td .table-button {
+        width: 40%;
+        min-width: 60px;
+        margin: 2px 3px;
       }
     }
   }

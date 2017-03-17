@@ -18,6 +18,10 @@ const TRANSITIONS = { back: 'back', forward: 'forward' };
 export default Component.extend(ContextMenuMixin, TreeMixin, {
   fetchService: service('base-service'),
 
+  youtubeVideosEnabled: true,
+  fetchingDirectory: true,
+  column: 'mime',
+
   backHistory: [],
   forwardHistory: [],
   selectedFiles: [],
@@ -67,6 +71,10 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
     return getOwner(this).resolveRegistration('config:environment');
   }),
 
+  rootAPI: computed('config', function() {
+    return this.get('config').rootAPI;
+  }),
+
   fileItemsClassNames: computed('formattedFiles', 'selectedFiles', 'cutFiles', function() {
     let formattedFiles = this.get('formattedFiles');
     let selectedFiles = this.get('selectedFiles');
@@ -95,13 +103,16 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
   //list of current directory's files
   directoryFiles: computed('model', function() {
     let model = this.get('model');
+    let _this = this;
 
     if (model) {
       return this.initializeDirectory(model);
     } else {
-      this.get('fetchService').fetch(`/api/admin/file?cmd=open&target=${this.get('homeDir')}`, { method: 'GET' })
-      .then((model) => {
+      this.get('fetchService').fetch(`${this.get('rootAPI')}file?cmd=open&target=${this.get('homeDir')}`, { method: 'GET' }).then((model) => {
         this.set('directoryFiles', this.initializeDirectory(model));
+      }, function(error) {
+        _this.get('flashMessages').warning(error.errorMessage.message);
+        _this.set('fetchingDirectory', false);
       });
     }
   }),
@@ -267,6 +278,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
       cwd: model.cwd,
     });
 
+    this.set('fetchingDirectory', false);
     return directoryFiles;
   },
 
@@ -300,9 +312,9 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
 
         if (file.mime === config.mimes.directory.name) {
           cwdChildren.push(file);
-        } else if (file.mime !== config.mimes.video.name) {
+        } else if (!config.mimes.video || file.mime !== config.mimes.video.name) {
           set(file, 'link', `${config.linkBaseURL}${file.hash}`);
-        } else {
+        } else if (config.mimes.video && file.mime === config.mimes.video.name) {
           let id = file.tmb.split('vi/')[1].split('/')[0];
           set(file, 'link', `${config.youtubeBaseURL}${id}`);
         }
@@ -314,7 +326,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
     this.setFileSizeString(directoryFiles);
     this.set('cwdPath', parentPath.substring(0, parentPath.length - 1));
 
-    return [directoryFiles, cwdChildren];
+    return [directoryFiles.sortBy(this.get('column')), cwdChildren];
   },
 
   //sets the permission string (ex: 'Read and Write')
@@ -407,7 +419,8 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
 
       if (targets) {
         let params = `cmd=paste&dst=${cwd.hash}${targets}&cut=1&src=${cutFiles.src}`;
-        this.get('fetchService').fetch(`/api/admin/file?${params}`, { method: 'GET' })
+
+        this.get('fetchService').fetch(`${this.get('rootAPI')}file?${params}`, { method: 'GET' })
         .then(() => {
           let directoryTree = this.get('directoryTree');
 
@@ -510,7 +523,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
       if (e.keyCode === 13) {
         this.set('fetchingDirectory', true);
 
-        this.get('fetchService').fetch(`/api/admin/file?cmd=search&q=${this.get('searchText')}`,
+        this.get('fetchService').fetch(`${this.get('rootAPI')}file?cmd=search&q=${this.get('searchText')}`,
           { method: 'GET' }).then((result) => {
           this.setProperties({
             directoryFiles: this.separateFiles(result, true)[0],
@@ -609,7 +622,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
     changeCWD(targetHash, options={}) {
       this.set('fetchingDirectory', true);
 
-      this.get('fetchService').fetch(`/api/admin/file?cmd=open&target=${targetHash}`, { method: 'GET' }).then((result) => {
+      this.get('fetchService').fetch(`${this.get('rootAPI')}file?cmd=open&target=${targetHash}`, { method: 'GET' }).then((result) => {
         let [directoryFiles, cwdChildren] = this.separateFiles(result);
         let cwd = this.findInTree(this.get('directoryTree'), targetHash, 'hash');
 
@@ -707,7 +720,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
       formData.append('upload[]', file, file.name);
 
       return new RSVP.Promise((resolve, reject) => {
-        fetch('/api/admin/file', {
+        fetch(`${this.get('rootAPI')}file`, {
           method: 'POST',
           body: formData,
           credentials: 'same-origin',
@@ -731,7 +744,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
 
       set(file, 'name', newName);
 
-      this.get('fetchService').fetch(`/api/admin/file?cmd=rename&target=${file.hash}&name=${newName}`, { method: 'GET' })
+      this.get('fetchService').fetch(`${this.get('rootAPI')}file?cmd=rename&target=${file.hash}&name=${newName}`, { method: 'GET' })
         .then(() => {
           this.send('refresh');
         });
@@ -753,7 +766,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
       });
 
       if (targetHashes) {
-        this.get('fetchService').fetch(`/api/admin/file?cmd=rm${targetHashes}`, { method: 'GET' }).then((result) => {
+        this.get('fetchService').fetch(`${this.get('rootAPI')}file?cmd=rm${targetHashes}`, { method: 'GET' }).then((result) => {
           if (result.removed.length) {
             this.set('deleteSuccessful', true);
           } else {
@@ -803,7 +816,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
       };
 
       this.set('videoDialogOpen', false);
-      this.get('fetchService').fetch('/api/admin/file/youtube', { method: 'POST' }, newVideo).then(() => {
+      this.get('fetchService').fetch(`${this.get('rootAPI')}file/youtube`, { method: 'POST' }, newVideo).then(() => {
         this.send('closeVideoDialog');
       });
     },
@@ -836,7 +849,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
     download({ clickedFile=null }) {
       let file = clickedFile || this.get('selectedFiles')[0];
 
-      fetch(`api/admin/file?cmd=file&target=${file.hash}&download=1`, {
+      fetch(`${this.get('rootAPI')}file?cmd=file&target=${file.hash}&download=1`, {
         method: 'GET',
         headers: {
           'X-CSRF-Token': this.get('csrfToken'),

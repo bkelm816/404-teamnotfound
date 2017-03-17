@@ -26,7 +26,9 @@
               {{/popover-on-component}}
             {{/toolbar/toolbar-button}}
 
-            {{toolbar/toolbar-button click=(action 'openVideoDialog') type='videoLibrary'}}
+            {{#if youtubeVideosEnabled}}
+              {{toolbar/toolbar-button click=(action 'openVideoDialog') type='videoLibrary'}}
+            {{/if}}
           {{/if}}
 
           {{#if (and selectedFiles.length (not (eq selectedFiles.[0].mime "directory")))}}
@@ -195,7 +197,7 @@
   {{/card.content}}
 {{/paper-card}}
 
-{{#if videoDialogOpen}}
+{{#if (and youtubeVideosEnabled videoDialogOpen)}}
   {{#paper-dialog class="video-dialog" clickOutsideToClose=true onClose=(action "closeVideoDialog")}}
     {{#paper-dialog-content class="video-dialog-content"}}
       {{#if videoUrlError}}

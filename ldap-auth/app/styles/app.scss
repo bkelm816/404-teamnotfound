@@ -1,2 +1,8 @@
 @import 'ember-paper';
 @import "pod-styles";
+
+#paper-wormhole {
+  p {
+    text-transform: capitalize;
+  }
+}
