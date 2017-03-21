@@ -6,3 +6,24 @@
     text-transform: capitalize;
   }
 }
+
+.context-menu__item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.context-menu__item:last-child {
+  border-bottom: none;
+}
+
+.video-dialog {
+  min-width: 500px;
+
+  md-input-container {
+    margin: 0;
+    width: 100%;
+
+    .md-errors-spacer {
+      display: none;
+    }
+  }
+}

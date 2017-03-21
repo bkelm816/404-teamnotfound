@@ -303,6 +303,10 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
       if (file.mime && (search || file.phash === model.cwd.hash)) {
         let config = this.get('config');
 
+        if (!file.size) {
+          file.size = 0;
+        }
+
         directoryFiles.size += file.size;
 
         this.setFileSizeString(file);
@@ -323,10 +327,13 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
       }
     });
 
-    this.setFileSizeString(directoryFiles);
+    let sortedDirectoryFiles = directoryFiles.sortBy(this.get('column'));
+    sortedDirectoryFiles.size = directoryFiles.size;
+
+    this.setFileSizeString(sortedDirectoryFiles);
     this.set('cwdPath', parentPath.substring(0, parentPath.length - 1));
 
-    return [directoryFiles.sortBy(this.get('column')), cwdChildren];
+    return [sortedDirectoryFiles, cwdChildren];
   },
 
   //sets the permission string (ex: 'Read and Write')
@@ -420,8 +427,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
       if (targets) {
         let params = `cmd=paste&dst=${cwd.hash}${targets}&cut=1&src=${cutFiles.src}`;
 
-        this.get('fetchService').fetch(`${this.get('rootAPI')}file?${params}`, { method: 'GET' })
-        .then(() => {
+        this.get('fetchService').fetch(`${this.get('rootAPI')}file?${params}`, { method: 'GET' }).then(() => {
           let directoryTree = this.get('directoryTree');
 
           //deleting folder rows from the directory tree view
@@ -582,36 +588,17 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
 
     //deselect files
     deselect(data) {
+      data = data.target;
 
-      //the loop looks through the target element's path take for one with class 'no-deselect-area', if it finds it,
-      //it does not deselect the selected files. If it finds 'directory-container' instead, it deselects the files and
-      //doesn't search further because we're outside the directory-container already
-      if (data.path) {
-
-        //path taken to targeted element for click action
-        for (let i = 0; i < data.path.length; i++) {
-          if (data.path[i].classList) {
-
-            //the names of each class for certain element
-            for (let j = 0; j < data.path[i].classList.length; j++) {
-              if (data.path[i].classList[j] === 'no-deselect-area') {
-
-                //exits out of the function and does not deselect
-                return;
-              } else if (data.path[i].classList[j] === 'directory-container') {
-
-                //deselects
-                this.set('selectedFiles', []);
-                return;
-              }
-            }
-          }
+      while (data.offsetParent !== null && !data.offsetParent.classList.contains('directory-container')) {
+        if (data.classList.contains('no-deselect-area')) {
+          return;
         }
-      } else {
-        if (!data.target.classList.contains('file-item') && !data.target.classList.contains('file-item-block')) {
-          this.set('selectedFiles', []);
-        }
+
+        data = data.offsetParent;
       }
+
+      this.set('selectedFiles', []);
     },
 
     changeDisplayType() {

@@ -67,6 +67,8 @@ app.post('/login', passport.authenticate('ldapauth', { session: false, successRe
 
 app.get('/', function(req, res) {
   console.log("Index called");
+  res.writeHead(200, { 'content-type': 'text/html' });
+  res.end('Index');
 });
 
 app.get('/test', function(req, res) {
@@ -79,13 +81,13 @@ app.get('/testdb', function(req, res) {
   MongoClient.connect(url, function(err, db) {
     assert.equal(null, err);
     console.log("\nConnected successfully to db server\n");
-    
+
     //insertDocuments(db, function() {
       findDocuments(db, function(docs) {
         db.close();
         res.send(JSON.stringify(docs));
       });
-    //});    
+    //});
   });
 });
 
@@ -148,6 +150,7 @@ app.get('/file', function(req, res) {
         read: 1,
         write: 1,
         rm: 1,
+        size: 1000,
       },
       {
         id: 3,
@@ -170,6 +173,7 @@ app.get('/file', function(req, res) {
         read: 1,
         write: 1,
         rm: 1,
+        size: 1000,
       },
       {
         id: 4,
@@ -181,6 +185,7 @@ app.get('/file', function(req, res) {
         read: 1,
         write: 1,
         rm: 1,
+        size: 1000,
       }
     ],
   }));
