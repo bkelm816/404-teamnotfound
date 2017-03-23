@@ -7,10 +7,10 @@ module.exports = function(environment) {
     rootURL: '/',
     locationType: 'auto',
     contentSecurityPolicy: {
-      'connect-src': "'self' http://192.168.56.101:8080"
+      'connect-src': "'self' http://404notfound.tech:8080"
     },
 
-    rootAPI: 'http://192.168.56.101:8080/',
+    rootAPI: 'http://404notfound.tech:8080/',
     mimes: {
       directory: {
         name: 'directory',
