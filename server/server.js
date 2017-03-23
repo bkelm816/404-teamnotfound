@@ -272,7 +272,7 @@ var openDirectory = function(db, target, callback) {
 
       Object.keys(groups[target]).forEach(function(key) {
 
-        sortedFiles.push.apply(sortedFiles, groups[target][key]/*.sortBy('name')*/);
+        sortedFiles.push.apply(sortedFiles, groups[target][key].sortBy('name'));
 
       });
 
@@ -297,17 +297,11 @@ var openDirectory = function(db, target, callback) {
 var OPTS = {
 
   server: {
-
-    url: 'ldap://localhost:389',
-
-    bindDn: 'cn=admin,dc=example,dc=com',
-
-    bindCredentials: 'secret',
-
-    searchBase: 'dc=example,dc=com',
-
+    url: 'ldap://404notfound.tech/404ldap',
+    bindDn: 'cn=admin, dc=404notfound, dc=tech',
+    bindCredentials: 'n1^e#$jF#nU#N9iq',
+    searchBase: 'dc=404notfound,dc=tech',
     searchFilter: '(uid={{username}})'
-
   }
 
 };
@@ -491,5 +485,8 @@ app.get('/file', function(req, res) {
 
 
 console.log("\nServer started");
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 app.listen(8080);
