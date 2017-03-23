@@ -2,8 +2,46 @@ var express      = require('express'),
     passport     = require('passport'),
     bodyParser   = require('body-parser'),
     LdapStrategy = require('passport-ldapauth');
-var MongoClient = require('mongodb').MongoClient
-  , assert = require('assert');
+var MongoClient  = require('mongodb').MongoClient,
+    assert       = require('assert');
+var fs           = require('fs');
+var path         = require('path');
+var multer       = require('multer')
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    MongoClient.connect(url, function(err, db) {
+      assert.equal(null, err);
+      console.log("\nConnected successfully to db server\n");
+      findDirPath(db, req.body.target, function(path) {
+        db.close();
+        cb(null, path);
+      });
+    });
+  },
+
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+var upload = multer({
+  storage: storage,
+
+  fileFilter: function (req, file, cb) {
+    MongoClient.connect(url, function(err, db) {
+      fileExists(db, req.body.target, file.originalname, function(found) {
+        db.close();
+
+        if (found) {
+          cb(new Error('File already exists'));
+        } else {
+          cb(null, true);
+        }
+      });
+    });
+  }
+});
 
 var url = 'mongodb://localhost:27017/myproject';
 
@@ -20,6 +58,43 @@ var insertDocuments = function(db, callback) {
     console.log("Inserted 3 documents into the collection");
     callback(result);
   });
+}
+
+var fileExists = function(db, target, name, callback) {
+  var collection = db.collection('files');
+  var error = false;
+
+  collection.find({ phash: target, name: name }).toArray(function(err, docs) {
+    assert.equal(err, null);
+    console.log("\nFound the following records");
+    console.log(docs);
+
+    if (docs.length > 0) {
+      callback(true);
+    } else {
+      callback(false);
+    }
+  });
+}
+
+var findDirPath = function(db, target, callback) {
+  var collection = db.collection('files');
+  var currentTarget = target;
+  var path = '';
+
+  while (parseInt(currentTarget.split('_')[1]) != 0) { 
+    collection.find({ hash: currentTarget }).toArray(function(err, docs) {
+      assert.equal(err, null);
+      console.log("\nFound the following records");
+      console.log(docs);
+
+      path = docs[0].name + '/' + path;
+      currentTarget = docs[0].phash;
+    });
+  }
+
+  path = 'uploads/' + path;
+  callback(path);
 }
 
 var findDocuments = function(db, callback) {
@@ -81,13 +156,13 @@ app.get('/testdb', function(req, res) {
   MongoClient.connect(url, function(err, db) {
     assert.equal(null, err);
     console.log("\nConnected successfully to db server\n");
-
+    
     //insertDocuments(db, function() {
       findDocuments(db, function(docs) {
         db.close();
         res.send(JSON.stringify(docs));
       });
-    //});
+    //});    
   });
 });
 
@@ -95,6 +170,20 @@ app.get('/info', function(req, res) {
   console.log("Info called");
   res.setHeader("Content-Type", "application/json");
   res.send(JSON.stringify({ result: "Info info" }));
+});
+
+var up = upload.array('upload[]');
+app.post('/file', function(req, res) {
+  up(req, res, function (err) {
+    if (err) {
+      console.log(err.message);
+      return res.status(500).end(err.message);
+    }
+
+    console.log(req.body);
+    console.log(req.files);
+    res.send();
+  });
 });
 
 app.get('/file', function(req, res) {
