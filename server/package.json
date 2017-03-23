@@ -17,6 +17,7 @@
     "mongodb": "^2.2.24",
     "multer": "^1.3.0",
     "passport": "*",
-    "passport-ldapauth": "*"
+    "passport-ldapauth": "*",
+    "underscore": "^1.8.3"
   }
 }
