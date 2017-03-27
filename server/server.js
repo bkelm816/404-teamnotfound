@@ -159,7 +159,7 @@ var removeFiles = function(db, targets, callback) {
   collection.find({ hash: { $all: targets } }).toArray(function(err, docs) {
     var writeResult = collection.remove({ hash: { $all: targets } });
     if (writeResult.nRemoved != targets.length) {
-      throw new Error("ERROR REMOVING FROM DB");
+      throw new Error("ERROR REMOVING FROM DB (" + JSON.stringify(writeResult) + ")");
     } else {
       docs.forEach(function(file) {
         fs.unlink('uploads/' + file.name, function(err) {
