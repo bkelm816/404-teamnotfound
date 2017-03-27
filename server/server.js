@@ -156,8 +156,9 @@ var openDirectory = function(db, target, callback) {
 var removeFiles = function(db, targets, callback) {
   var collection = db.collection('files');
 
-  collection.find({ hash: { $all: targets } }).toArray(function(err, docs) {
-    collection.remove({ hash: { $all: targets } }).then(function(result) {
+  collection.find({ hash: { $in: targets } }).toArray(function(err, docs) {
+    console.log(docs);
+    collection.remove({ hash: { $in: targets } }).then(function(result) {
       console.log("removing files from db: " + result);
     });
 
