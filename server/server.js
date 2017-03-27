@@ -161,20 +161,14 @@ var removeFiles = function(db, targets, callback) {
     if (writeResult.nRemoved != removedHashes.length) {
       throw new Error("ERROR REMOVING FROM DB");
     } else {
-      glob("uploads/*", options, function (err, files) {
-        if (err) throw err;
-
-        files.forEach(function(item, index, array) {
-          console.log(item + " found");
-
-          fs.unlink(item, function(err) {
-            if (err) throw err;
-            console.log(item + " deleted");
-          });
+      docs.forEach(function(file) {
+        fs.unlink('uploads/' + file.name, function(err) {
+          if (err) throw err;
+          console.log(item + " deleted");
         });
-
-        callback(targets);
       });
+
+      callback(targets);
     }
   });
 }
