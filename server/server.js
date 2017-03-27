@@ -157,8 +157,9 @@ var removeFiles = function(db, targets, callback) {
   var collection = db.collection('files');
 
   collection.find({ hash: { $all: targets } }).toArray(function(err, docs) {
-    var writeResult = collection.remove({ hash: { $all: targets } });
-    console.log(writeResult);
+    collection.remove({ hash: { $all: targets } }).then(function(result) {
+      console.log("removing files from db: " + result);
+    });
 
     docs.forEach(function(file) {
       fs.unlink('uploads/' + file.name, function(err) {
@@ -168,6 +169,26 @@ var removeFiles = function(db, targets, callback) {
     });
 
     callback({ removed: targets });
+  });
+}
+
+var renameFile = function(db, target, name, callback) {
+  var collection = db.collection('files');
+
+  collection.findOne({ hash: target }).then(function(file) {
+    collection.update({ hash: target }, { $set: { name: name } }).then(function(result) {
+      console.log("updating item in db: " + result);
+    });
+
+    fs.rename('uploads/' + file.name, 'uploads/' + name, function(err) {
+      if (err) throw err;
+
+      fs.stat('uploads/' + name, function(err, stats) {
+        if (err) throw err;
+
+        console.log('stats: ' + JSON.stringify(stats));
+      });
+    });
   });
 }
 
@@ -273,6 +294,19 @@ app.get('/file', function(req, res) {
       MongoClient.connect(url, function(err, db) {
         removeFiles(db, targets, function(result) {
           console.log('cmd=rm removed:');
+          console.log(result);
+          res.setHeader("Content-Type", "application/json");
+          res.send(JSON.stringify(result));
+        });
+      });
+      break;
+
+    case "rename":
+      var name = req.query.name;
+
+      MongoClient.connect(url, function(err, db) {
+        renameFile(db, target, name, function(result) {
+          console.log('cmd=rename renamed:');
           console.log(result);
           res.setHeader("Content-Type", "application/json");
           res.send(JSON.stringify(result));
