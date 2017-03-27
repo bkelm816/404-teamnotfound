@@ -168,7 +168,7 @@ var removeFiles = function(db, targets, callback) {
         });
       });
 
-      callback(targets);
+      callback({ removed: targets });
     }
   });
 }
@@ -264,7 +264,7 @@ app.get('/file', function(req, res) {
           console.log('cmd=open retrieved:');
           console.log(result);
           res.setHeader("Content-Type", "application/json");
-          res.send(JSON.stringify({ removed: result }));
+          res.send(JSON.stringify(result));
         });
       });
       break;
