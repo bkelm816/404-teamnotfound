@@ -158,7 +158,7 @@ var removeFiles = function(db, targets, callback) {
 
   collection.find({ hash: { $all: targets } }).toArray(function(err, docs) {
     var writeResult = collection.remove({ hash: { $all: targets } });
-    if (writeResult.nRemoved != removedHashes.length) {
+    if (writeResult.nRemoved != targets.length) {
       throw new Error("ERROR REMOVING FROM DB");
     } else {
       docs.forEach(function(file) {
