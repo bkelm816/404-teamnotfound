@@ -153,6 +153,17 @@ var openDirectory = function(db, target, callback) {
   });
 }
 
+var removeFiles = function(db, targets, callback) {
+  var collection = db.collection('files');
+  var removedHashes = [];
+
+  collection.find({ hash: { $all: targets } }).toArray(function(err, docs) {
+    console.log(docs);
+
+    callback(removedHashes);
+  });
+}
+
 var OPTS = {
   server: {
     url: 'ldap://404notfound.tech/404ldap',
@@ -242,6 +253,19 @@ app.get('/file', function(req, res) {
       MongoClient.connect(url, function(err, db) {
         openDirectory(db, target, function(result) {
           console.log('cmd=open retrieved:');
+          console.log(result);
+          res.setHeader("Content-Type", "application/json");
+          res.send(JSON.stringify(result));
+        });
+      });
+      break;
+
+    case "rm":
+      var targets = req.query.targets;
+
+      MongoClient.connect(url, function(err, db) {
+        removeFiles(db, targets, function(result) {
+          console.log('cmd=rm removed:');
           console.log(result);
           res.setHeader("Content-Type", "application/json");
           res.send(JSON.stringify(result));

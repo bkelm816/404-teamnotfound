@@ -748,8 +748,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
     confirmDelete() {
       let targetHashes = '';
       this.get('selectedFiles').forEach((file) => {
-        let splitHash = file.hash.split('_');
-        targetHashes += `&targets%5B%5D=${splitHash[0]}_${splitHash[1]}`;
+        targetHashes += `&targets%5B%5D=${file.hash}`;
       });
 
       if (targetHashes) {
