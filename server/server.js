@@ -155,12 +155,27 @@ var openDirectory = function(db, target, callback) {
 
 var removeFiles = function(db, targets, callback) {
   var collection = db.collection('files');
-  var removedHashes = [];
 
   collection.find({ hash: { $all: targets } }).toArray(function(err, docs) {
-    console.log(docs);
+    var writeResult = collection.remove({ hash: { $all: targets } });
+    if (writeResult.nRemoved != removedHashes.length) {
+      throw new Error("ERROR REMOVING FROM DB");
+    } else {
+      glob("uploads/*", options, function (err, files) {
+        if (err) throw err;
 
-    callback(removedHashes);
+        files.forEach(function(item, index, array) {
+          console.log(item + " found");
+
+          fs.unlink(item, function(err) {
+            if (err) throw err;
+            console.log(item + " deleted");
+          });
+        });
+
+        callback(targets);
+      });
+    }
   });
 }
 
@@ -255,7 +270,7 @@ app.get('/file', function(req, res) {
           console.log('cmd=open retrieved:');
           console.log(result);
           res.setHeader("Content-Type", "application/json");
-          res.send(JSON.stringify(result));
+          res.send(JSON.stringify({ removed: result }));
         });
       });
       break;
