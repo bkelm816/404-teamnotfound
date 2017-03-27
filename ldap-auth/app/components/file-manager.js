@@ -442,6 +442,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
             }
           });
 
+          this.set('cutFiles', []);
           this.send('refresh');
         });
       }

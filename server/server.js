@@ -157,7 +157,6 @@ var removeFiles = function(db, targets, callback) {
   var collection = db.collection('files');
 
   collection.find({ hash: { $in: targets } }).toArray(function(err, docs) {
-    console.log(docs);
     collection.remove({ hash: { $in: targets } }).then(function(result) {
       console.log("removing files from db: " + result);
     });
@@ -190,6 +189,16 @@ var renameFile = function(db, target, name, callback) {
         console.log('stats: ' + JSON.stringify(stats));
       });
     });
+  });
+}
+
+var pasteFiles = function(db, opts, callback) {
+  var collection = db.collection('files');
+
+  collection.update({ hash: { $in: opts.targets }, phash: opts.src }, { $set: { phash: opts.dst } }).then(function(result) {
+    console.log("updating item in db: " + result);
+
+    callback(result);
   });
 }
 
@@ -307,6 +316,21 @@ app.get('/file', function(req, res) {
 
       MongoClient.connect(url, function(err, db) {
         renameFile(db, target, name, function(result) {
+          console.log('cmd=rename renamed:');
+          console.log(result);
+          res.setHeader("Content-Type", "application/json");
+          res.send(JSON.stringify(result));
+        });
+      });
+      break;
+
+    case "paste":
+      var dst = req.query.dst;
+      var targets = req.query.targets;
+      var src = req.query.src;
+
+      MongoClient.connect(url, function(err, db) {
+        pasteFiles(db, { dst: dst, targets: targets, src: src }, function(result) {
           console.log('cmd=rename renamed:');
           console.log(result);
           res.setHeader("Content-Type", "application/json");
