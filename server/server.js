@@ -8,6 +8,7 @@ var fs           = require('fs');
 var path         = require('path');
 var multer       = require('multer');
 var _            = require('underscore');
+var im           = require('imagemagick');
 
 var storage = multer.diskStorage({
   destination: 'uploads/',
@@ -220,10 +221,11 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "*");
   res.header("Access-Control-Request-Method", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-csrf-token");
   next();
 });
 
+app.use(express.static(__dirname + '/uploads/tmb'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(passport.initialize());
@@ -272,6 +274,8 @@ app.post('/file', function(req, res) {
       console.log(err.message);
       return res.status(500).end(err.message);
     }
+
+    console.log('\n\n\n\n' + JSON.stringify(req.files[0]) + '\n\n\n');
 
     MongoClient.connect(url, function(err, db) {
       insertFile(db, req.body.target, req.files[0], function() {
@@ -337,6 +341,11 @@ app.get('/file', function(req, res) {
           res.send(JSON.stringify(result));
         });
       });
+      break;
+
+    case "file":
+      var file = __dirname + '/uploads/back_button.png';
+      res.download(file, 'back_button.png');
       break;
   }
 });

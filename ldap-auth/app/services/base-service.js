@@ -4,10 +4,12 @@ import fetch from 'fetch';
 
 export default Service.extend({
   fetch(adress, params = {}, body = null) {
-    params.headers = {
-      'Accept': 'application/json', // jscs:ignore disallowQuotedKeysInObjects
-      'Content-Type': 'application/json', // jscs:ignore disallowQuotedKeysInObjects
-    };
+    if (!params.headers) {
+      params.headers = {};
+    }
+
+    params.headers['Accept'] = 'application/json';
+    params.headers['Content-Type'] = 'application/json';
 
     if (body) {
       params.body = JSON.stringify(body);

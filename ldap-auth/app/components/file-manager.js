@@ -464,6 +464,14 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
       names += `, ${file.name}`;
     });
 
+    this.get('cutFiles').forEach((file, index) => {
+      if (names.includes(file.name)) {
+        let cutFiles = this.get('cutFiles').slice();
+        cutFiles.splice(index, 1);
+        this.set('cutFiles', cutFiles);
+      }
+    });
+
     this.set('filesToDeleteNames', names.substring(2));
     this.set('showDeleteDialog', true);
   },
@@ -834,21 +842,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
 
     download({ clickedFile=null }) {
       let file = clickedFile || this.get('selectedFiles')[0];
-
-      fetch(`${this.get('rootAPI')}file?cmd=file&target=${file.hash}&download=1`, {
-        method: 'GET',
-        headers: {
-          'X-CSRF-Token': this.get('csrfToken'),
-        },
-      }).then((resp) => resp.json()).then((data) => {
-        //let url = window.URL.createObjectURL(blob);
-        let a = $('.download-link')[0];
-
-        a.href = `data:image/jpeg;base64,${data.content}`;
-        a.download = 'test.jpeg';
-        a.click();
-        a.href = '';
-      });
+      window.open(`${this.get('rootAPI')}file?cmd=file&target=${file.hash.replace(' ', '%20')}&download=1`);
     },
   },
 });
