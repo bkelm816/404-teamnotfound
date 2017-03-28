@@ -269,9 +269,20 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(passport.initialize());
 
-app.post('/login', passport.authenticate('ldapauth', { session: false, successRedirect: 'http://localhost:4200/file-manager', failureRedirect: 'http://localhost:4200?unathourized=true' }), function(req, res) {
-  console.log("Login called");
-  res.send({status: 'ok'});
+app.post('/login', function(req, res, next) {
+  passport.authenticate('ldapauth', function(err, user, info) {
+    if (err) {
+      return next(err); // will generate a 500 error
+    }
+    // Generate a JSON response reflecting authentication status
+    if (!user) {
+      return res.redirect('http://localhost:4200?unathourized=true');
+    }
+
+    console.log('\n\n' + JSON.stringify(user) + '\n\n');
+
+    return res.redirect('http://localhost:4200/file-manager');
+  })(req, res, next);
 });
 
 app.get('/', function(req, res) {
