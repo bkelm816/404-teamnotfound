@@ -1,5 +1,5 @@
 {{#liquid-if previewOpen}}
-  {{#paper-dialog class="image-preview-dialog" clickOutsideToClose=true onClose=(action "closeDialog")
+  {{#paper-dialog class=(concat componentCssClassName "__image_preview image-preview-dialog") clickOutsideToClose=true onClose=(action "closeDialog")
     class=(concat "image-preview-dialog" (if maxSize " max-size" ""))}}
     {{#paper-dialog-content}}
       <div class="layout-row layout-align-center-center image-preview-container">

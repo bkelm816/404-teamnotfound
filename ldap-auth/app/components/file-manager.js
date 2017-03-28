@@ -7,7 +7,6 @@ import RSVP from 'rsvp';
 import service from 'ember-service/inject';
 import set from 'ember-metal/set';
 import TreeMixin from '../mixins/tree';
-import $ from 'jquery';
 
 const SIZE_UNITS = ['b', 'kb', 'mb', 'gb'];
 
@@ -53,7 +52,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
       let selectedFiles = this.get('selectedFiles');
 
       if (selectedFiles.length === 1 && selectedFiles[0].mime === this.get('config').mimes.directory.name) {
-        controller.send('changeCWD', selectedFiles[0].hash);
+        this.send('changeCWD', selectedFiles[0].hash);
       }
     }
 
@@ -81,7 +80,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
     let fileItemsClassNames = [];
 
     formattedFiles.forEach((file) => {
-      let classes = file.hash.replace(' ', '%space%') + ' ';
+      let classes = file.hash.replace(new RegExp(' ', 'g'), '%space%') + ' ';
 
       let fileFound = this.findObject(selectedFiles, file.hash, 'hash');
       if (fileFound.name !== 'None') {
@@ -206,7 +205,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
 
     if (!clickedFile && targetElement) {
       clickedFile = this.get('formattedFiles').find((file) => {
-        return (file.hash === targetElement.classList[2].replace('%space%', ' '));
+        return (file.hash === targetElement.classList[2].replace(new RegExp('%space%', 'g'), ' '));
       });
 
       if (!selectedFiles.includes(clickedFile)) {
@@ -842,7 +841,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
 
     download({ clickedFile=null }) {
       let file = clickedFile || this.get('selectedFiles')[0];
-      window.open(`${this.get('rootAPI')}file?cmd=file&target=${file.hash.replace(' ', '%20')}&download=1`);
+      window.open(`${this.get('rootAPI')}file?cmd=file&target=${file.hash.replace(new RegExp(' ', 'g'), '%20')}&download=1`);
     },
   },
 });

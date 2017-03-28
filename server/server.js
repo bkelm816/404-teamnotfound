@@ -66,6 +66,7 @@ var insertFile = function(db, target, file, callback) {
     phash: target,
     name: file.originalname,
     size: file.size,
+    tmb: 'http://404notfound.tech:8080/' + file.originalname,
     read: 1, write: 1, rm: 1,
   }, function(err, result) {
     assert.equal(err, null);
@@ -103,6 +104,18 @@ var findDocuments = function(db, callback) {
     assert.equal(err, null);
 
     console.log("Found the following records");
+    console.log(docs);
+    callback(docs);
+  });
+}
+
+var searchFiles = function(db, q, callback) {
+  var collection = db.collection('files');
+
+  collection.find({ name: new RegExp(q, 'g') }).toArray(function(err, docs) {
+    assert.equal(err, null);
+
+    console.log("Found the following files");
     console.log(docs);
     callback(docs);
   });
@@ -167,6 +180,13 @@ var removeFiles = function(db, targets, callback) {
         if (err) throw err;
         console.log(file.name + " deleted");
       });
+
+      if (file.mime.split('/')[0] == 'image') {
+        fs.unlink('uploads/tmb/' + file.name, function(err) {
+          if (err) throw err;
+          console.log(file.name + " deleted");
+        });
+      }
     });
 
     callback({ removed: targets });
@@ -190,6 +210,16 @@ var renameFile = function(db, target, name, callback) {
         console.log('stats: ' + JSON.stringify(stats));
       });
     });
+
+    fs.rename('uploads/tmb/' + file.name, 'uploads/tmb/' + name, function(err) {
+      if (err) throw err;
+
+      fs.stat('uploads/tmb/' + name, function(err, stats) {
+        if (err) throw err;
+
+        console.log('stats: ' + JSON.stringify(stats));
+      });
+    });
   });
 }
 
@@ -199,6 +229,15 @@ var pasteFiles = function(db, opts, callback) {
   collection.update({ hash: { $in: opts.targets }, phash: opts.src }, { $set: { phash: opts.dst } }).then(function(result) {
     console.log("updating item in db: " + result);
 
+    callback(result);
+  });
+}
+
+var getFile = function(db, hash, callback) {
+  var collection = db.collection('files');
+
+  collection.findOne({ hash: hash }).then(function(result) {
+    console.log("retried file: " + JSON.stringify(result));
     callback(result);
   });
 }
@@ -267,6 +306,17 @@ app.get('/info', function(req, res) {
   res.send(JSON.stringify({ result: "Info info" }));
 });
 
+app.get('/openfile/:hash', function(req, res) {
+  console.log(req.params);
+
+  MongoClient.connect(url, function(err, db) {
+    getFile(db, req.params.hash, function(result) {
+      var path = __dirname + "/uploads/" + result.name;
+      res.sendfile(path);
+    });
+  });
+});
+
 var up = upload.array('upload[]');
 app.post('/file', function(req, res) {
   up(req, res, function (err) {
@@ -275,7 +325,19 @@ app.post('/file', function(req, res) {
       return res.status(500).end(err.message);
     }
 
-    console.log('\n\n\n\n' + JSON.stringify(req.files[0]) + '\n\n\n');
+    if (req.files[0].mimetype.split('/')[0] == 'image') {
+      var filePath = __dirname + "/uploads/" + req.files[0].filename;
+      var thumbPath = __dirname + "/uploads/tmb/" + req.files[0].filename;
+
+      im.resize({
+        srcPath: filePath,
+        dstPath: thumbPath,
+        width: 200,
+      }, function(err, stdout, stderr) {
+        if (err) throw err;
+        console.log('\nresized image to fit within 200x200px\n');
+      });
+    }
 
     MongoClient.connect(url, function(err, db) {
       insertFile(db, req.body.target, req.files[0], function() {
@@ -346,6 +408,16 @@ app.get('/file', function(req, res) {
     case "file":
       var file = __dirname + '/uploads/back_button.png';
       res.download(file, 'back_button.png');
+      break;
+
+    case "search":
+      var q = req.query.q;
+      MongoClient.connect(url, function(err, db) {
+        searchFiles(db, q, function(result) {
+          res.setHeader("Content-Type", "application/json");
+          res.send(JSON.stringify({ files: result }));
+        });
+      });
       break;
   }
 });

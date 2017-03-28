@@ -10,6 +10,7 @@ module.exports = function(environment) {
       'connect-src': "'self' http://404notfound.tech:8080"
     },
 
+    linkBaseURL: 'http://404notfound.tech:8080/openfile/',
     rootAPI: 'http://404notfound.tech:8080/',
     mimes: {
       directory: {
