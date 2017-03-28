@@ -6,7 +6,7 @@ import getOwner from 'ember-getowner-polyfill';
 import RSVP from 'rsvp';
 import service from 'ember-service/inject';
 import set from 'ember-metal/set';
-import TreeMixin from 'ldap-auth/mixins/tree';
+import TreeMixin from '../mixins/tree';
 import $ from 'jquery';
 
 const SIZE_UNITS = ['b', 'kb', 'mb', 'gb'];
@@ -43,7 +43,6 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
   },
 
   keyDown(e) {
-    let controller = this.get('controller');
     let dir;
 
     if (e.keyCode === 38) {
@@ -51,7 +50,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
     } else if (e.keyCode === 40) {
       dir = 1;
     } else if (e.keyCode === 13) {
-      let selectedFiles = controller.get('selectedFiles');
+      let selectedFiles = this.get('selectedFiles');
 
       if (selectedFiles.length === 1 && selectedFiles[0].mime === this.get('config').mimes.directory.name) {
         controller.send('changeCWD', selectedFiles[0].hash);
@@ -59,7 +58,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
     }
 
     if (dir) {
-      controller.changeFileSelection({
+      this.changeFileSelection({
         direction: dir,
         shiftKey: e.shiftKey,
         ctrKey: e.ctrlKey || e.metaKey,
@@ -82,7 +81,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
     let fileItemsClassNames = [];
 
     formattedFiles.forEach((file) => {
-      let classes = '';
+      let classes = file.hash.replace(' ', '%space%') + ' ';
 
       let fileFound = this.findObject(selectedFiles, file.hash, 'hash');
       if (fileFound.name !== 'None') {
@@ -207,10 +206,10 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
 
     if (!clickedFile && targetElement) {
       clickedFile = this.get('formattedFiles').find((file) => {
-        return (file.hash === targetElement.classList[0]);
+        return (file.hash === targetElement.classList[2].replace('%space%', ' '));
       });
 
-      if (!selectedFiles.contains(clickedFile)) {
+      if (!selectedFiles.includes(clickedFile)) {
         selectedFiles = [clickedFile];
       }
     }

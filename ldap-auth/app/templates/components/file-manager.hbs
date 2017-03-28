@@ -129,8 +129,7 @@
               <table class="no-deselect-area file-list">
                 <tbody>
                   {{#each formattedFiles as |file index|}}
-                    <tr class={{concat file.hash
-                      (concat " file-item data-listing " (get-array-element fileItemsClassNames index))}}
+                    <tr class={{concat "file-item data-listing " (get-array-element fileItemsClassNames index)}}
                       onClick={{action "onClickFile" file bubbles=false}} ondblclick={{action "onDblClickFile" file}}>
                       <td class="name-column">
                         <div class="layout-row layout-align-start-center">
