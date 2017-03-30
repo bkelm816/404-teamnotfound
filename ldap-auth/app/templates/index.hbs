@@ -1,6 +1,7 @@
-<form action="http://404notfound.tech:8080/login" method="POST">
-  <div>
-    <input name="username" placeholder="username" />
+<form class = "layout-row layout-align-center" action="https://404notfound.tech:8080/login" method="POST">
+  <div class = "layout layout-sm-column">
+    <input name="username" placeholder="username"  />
+    {{!paper-input flex=30 label = "Username" value = username onChange=(action (mut username))}}
   </div>
   <div>
     <input name="password" placeholder="password" />
