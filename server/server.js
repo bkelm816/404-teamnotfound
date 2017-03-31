@@ -67,7 +67,7 @@ var insertFile = function(db, target, file, callback) {
     phash: target,
     name: file.originalname,
     size: file.size,
-    tmb: 'https://404notfound.tech:8080/' + file.originalname,
+    tmb: 'https://404notfound.tech:8080/tmb/' + file.originalname,
     read: 1, write: 1, rm: 1,
   }, function(err, result) {
     assert.equal(err, null);
@@ -270,8 +270,9 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.use(express.static(__dirname + '/uploads/tmb'));
-app.use(bodyParser.json());
+app.use(express.static(__dirname + '/ldapauth'));
+app.use('tmb', express.static(__dirname + '/uploads/tmb'));
+app.use(bodyParser.json() );
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(passport.initialize());
 
@@ -282,19 +283,13 @@ app.post('/login', function(req, res, next) {
     }
     // Generate a JSON response reflecting authentication status
     if (!user) {
-      return res.redirect('http://localhost:4200?unathourized=true');
+      return res.redirect('https://404notfound.tech:8080?unathourized=true');
     }
 
     console.log('\n\n' + JSON.stringify(user) + '\n\n');
 
-    return res.redirect('http://localhost:4200/file-manager');
+    return res.redirect('https://404notfound.tech:8080/file-manager');
   })(req, res, next);
-});
-
-app.get('/', function(req, res) {
-  console.log("Index called");
-  res.writeHead(200, { 'content-type': 'text/html' });
-  res.end('Index');
 });
 
 app.get('/test', function(req, res) {
@@ -439,6 +434,17 @@ app.get('/file', function(req, res) {
   }
 });
 
+app.get('/tmb/:name', function(req, res) {
+  console.log('/node_server/404-teamnotfound/server/uploads/tmb/' + req.params.name);
+  res.sendFile('/node_server/404-teamnotfound/server/uploads/tmb/' + req.params.name);
+});
+
+app.get('*', function(req, res) {
+  res.sendFile('/node_server/404-teamnotfound/server/ldapauth/index.html');
+});
+
 var server = https.createServer(options, app).listen(port, function(){
   console.log("\nExpress server listening on port " + port);
 });
+
+exports = module.exports = app;
