@@ -9,6 +9,7 @@ var path         = require('path');
 var multer       = require('multer');
 var _            = require('underscore');
 var im           = require('imagemagick');
+var https        = require('https');
 
 var storage = multer.diskStorage({
   destination: 'uploads/',
@@ -66,7 +67,7 @@ var insertFile = function(db, target, file, callback) {
     phash: target,
     name: file.originalname,
     size: file.size,
-    tmb: 'http://404notfound.tech:8080/' + file.originalname,
+    tmb: 'https://404notfound.tech:8080/' + file.originalname,
     read: 1, write: 1, rm: 1,
   }, function(err, result) {
     assert.equal(err, null);
@@ -253,6 +254,11 @@ var OPTS = {
 };
 
 var app = express();
+var port = 8080;
+var options = {
+  key: fs.readFileSync('./key.pem', 'utf8'),
+  cert: fs.readFileSync('./server.crt', 'utf8'),
+};
 
 passport.use(new LdapStrategy(OPTS));
 
@@ -433,5 +439,6 @@ app.get('/file', function(req, res) {
   }
 });
 
-console.log("\nServer started");
-app.listen(8080);
+var server = https.createServer(options, app).listen(port, function(){
+  console.log("\nExpress server listening on port " + port);
+});
