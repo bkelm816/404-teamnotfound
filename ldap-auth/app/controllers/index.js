@@ -6,4 +6,10 @@ export default Ember.Controller.extend({
 
   queryParams: ['unathourized'],
   unathourized: false,
+
+  /*action:{
+    onFocus=(action "focusReceived")
+    onBlur=(action "blurReceived")
+    onKeyDown=(action "keyDownReceived")
+  },*/
 });
