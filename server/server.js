@@ -10,6 +10,7 @@ var multer       = require('multer');
 var _            = require('underscore');
 var im           = require('imagemagick');
 var https        = require('https');
+var cookieParser = require('cookie-parser');
 
 var storage = multer.diskStorage({
   destination: 'uploads/',
@@ -122,7 +123,7 @@ var searchFiles = function(db, q, callback) {
   });
 }
 
-var openDirectory = function(db, target, callback) {
+var openDirectory = function(db, target, userLevel, callback) {
   var collection = db.collection('files');
 
   collection.find({}).toArray(function(err, docs) {
@@ -159,6 +160,29 @@ var openDirectory = function(db, target, callback) {
       Object.keys(groups[target]).forEach(function(key) {
         sortedFiles.push.apply(sortedFiles, _.sortBy(groups[target][key], 'name'));
       });
+    }
+
+    cwd.read = cwd.write = cwd.rm = 0;
+
+    switch(userLevel) {
+      case 1:
+        cwd.read = 1;
+        sortedFiles.forEach(function(file) {
+          file.read = 1; file.write = 0; file.rm = 0;
+        });
+        break;
+      case 2:
+        cwd.read = 1; cwd.write = 1;
+        sortedFiles.forEach(function(file) {
+          file.read = 1; file.write = 1; file.rm = 0;
+        });
+        break;
+      case 3:
+        cwd.read = 1; cwd.write = 1; cwd.rm = 1;
+        sortedFiles.forEach(function(file) {
+          file.read = 1; file.write = 1; file.rm = 1;
+        });
+        break;
     }
 
     callback({
@@ -257,7 +281,8 @@ var app = express();
 var port = 8080;
 var options = {
   key: fs.readFileSync('./key.pem', 'utf8'),
-  cert: fs.readFileSync('./server.crt', 'utf8'),
+  cert: fs.readFileSync('./cert.pem', 'utf8'),
+  passphrase: 'admin',
 };
 
 passport.use(new LdapStrategy(OPTS));
@@ -274,23 +299,32 @@ app.use(express.static(__dirname + '/ldapauth'));
 app.use('tmb', express.static(__dirname + '/uploads/tmb'));
 app.use(bodyParser.json() );
 app.use(bodyParser.urlencoded({extended: false}));
+app.use(cookieParser());
+
+app.use(require('express-session')({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: true },
+}));
+
 app.use(passport.initialize());
+app.use(passport.session());
 
-app.post('/login', function(req, res, next) {
-  passport.authenticate('ldapauth', function(err, user, info) {
-    if (err) {
-      return next(err); // will generate a 500 error
-    }
-    // Generate a JSON response reflecting authentication status
-    if (!user) {
-      return res.redirect('https://404notfound.tech:8080?unathourized=true');
-    }
-
-    console.log('\n\n' + JSON.stringify(user) + '\n\n');
-
-    return res.redirect('https://404notfound.tech:8080/file-manager');
-  })(req, res, next);
+passport.serializeUser(function(user, done) {
+  console.log('\n\n\n' + JSON.stringify(user) + '\n\n\n');
+  done(null, user);
 });
+
+passport.deserializeUser(function(user, done) {
+  console.log(user);
+  done(null, user);
+});
+
+app.post('/login', passport.authenticate('ldapauth', {
+  successRedirect: '/file-manager',
+  failureRedirect: '/?unathourized=true',
+}));
 
 app.get('/test', function(req, res) {
   console.log("Test called");
@@ -364,10 +398,31 @@ app.get('/file', function(req, res) {
   var cmd = req.query.cmd;
   var target = req.query.target;
 
+  console.log('\n\n\n' + JSON.stringify(req.user));
+
+  var userLevel = req.user.dn.split('cn=all');
+  if (userLevel.length == 1) {
+    userLevel = req.user.dn.split('cn=write');
+    if (userLevel.length == 1) {
+      userLevel = req.user.dn.split('cn=read');
+      if (userLevel.length == 1) {
+        res.redirect('https://404notfound.tech:8080/?unathourized=true');
+      } else {
+        userLevel = 1;
+      }
+    } else {
+      userLevel = 2;
+    }
+  } else {
+    userLevel = 3;
+  }
+
+  console.log('Userlevel: ' + userLevel + '\n\n\n');
+
   switch(cmd) {
     case "open":
       MongoClient.connect(url, function(err, db) {
-        openDirectory(db, target, function(result) {
+        openDirectory(db, target, userLevel, function(result) {
           console.log('cmd=open retrieved:');
           console.log(result);
           res.setHeader("Content-Type", "application/json");
@@ -437,6 +492,14 @@ app.get('/file', function(req, res) {
 app.get('/tmb/:name', function(req, res) {
   console.log('/node_server/404-teamnotfound/server/uploads/tmb/' + req.params.name);
   res.sendFile('/node_server/404-teamnotfound/server/uploads/tmb/' + req.params.name);
+});
+
+app.get('/file-manager', function(req, res) {
+  if (req.user) {
+    res.sendFile('/node_server/404-teamnotfound/server/ldapauth/index.html');
+  } else {
+    res.redirect('/?unathourized=true');
+  }
 });
 
 app.get('*', function(req, res) {

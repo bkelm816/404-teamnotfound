@@ -7,7 +7,7 @@ module.exports = function(environment) {
     rootURL: '/',
     locationType: 'auto',
     contentSecurityPolicy: {
-      'connect-src': "'self' https://404notfound.tech:8080"
+      'connect-src': "https://404notfound.tech:8080"
     },
 
     linkBaseURL: 'https://404notfound.tech:8080/openfile/',

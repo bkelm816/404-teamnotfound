@@ -220,8 +220,20 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
       },
     });
 
+    let canModify = true;
+    let canDelete = true;
+    selectedFiles.forEach((file) => {
+      if (!file.rm) {
+        canDelete = false;
+      }
+
+      if (!file.write) {
+        canModify = false;
+      }
+    });
+
     if (clickedFile) {
-      if (selectedFiles.length) {
+      if (canDelete) {
         contextItems.push({
           label: 'Cut',
           action() {
@@ -238,23 +250,25 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
         });
       }
 
-      if (selectedFiles.length === 1) {
-        if (selectedFiles[0].write) {
-          contextItems.push({
-            label: 'Rename',
-            action() {
-              _this.renameFileStart();
-            },
-          });
-        }
+      if (canModify) {
+        if (selectedFiles.length === 1) {
+          if (selectedFiles[0].write) {
+            contextItems.push({
+              label: 'Rename',
+              action() {
+                _this.renameFileStart();
+              },
+            });
+          }
 
-        if (selectedFiles[0].read) {
-          contextItems.push({
-            label: 'Download',
-            action() {
-              _this.send('download', { clickedFile });
-            },
-          });
+          if (selectedFiles[0].read) {
+            contextItems.push({
+              label: 'Download',
+              action() {
+                _this.send('download', { clickedFile });
+              },
+            });
+          }
         }
       }
     }
@@ -457,6 +471,7 @@ export default Component.extend(ContextMenuMixin, TreeMixin, {
     selectedFiles.forEach((file) => {
       if (!file.rm) {
         this.get('flashMessages').warning(`No permission to delete ${selectedFiles.length > 1 ? 'these' : 'this'} file`);
+        this.set('showDeleteDialog', false);
         return;
       }
 
