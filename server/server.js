@@ -317,7 +317,7 @@ passport.serializeUser(function(user, done) {
 });
 
 passport.deserializeUser(function(user, done) {
-  console.log(user);
+  console.log('\n\n\n' + JSON.stringify(user) + '\n\n\n');
   done(null, user);
 });
 
@@ -500,6 +500,14 @@ app.get('/file-manager', function(req, res) {
   } else {
     res.redirect('/?unathourized=true');
   }
+});
+
+app.get('/logout', function(req, res) {
+  req.logOut();
+  req.session.destroy(function() {
+    res.clearCookie('connect.sid');
+    res.redirect('/');
+  });
 });
 
 app.get('*', function(req, res) {
