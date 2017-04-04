@@ -295,11 +295,14 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.use(express.static(__dirname + '/ldapauth'));
 app.use('tmb', express.static(__dirname + '/uploads/tmb'));
 app.use(bodyParser.json() );
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
+app.use(function(req, res, next) {
+  res.set('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
+  next();
+});
 
 app.use(require('express-session')({
     secret: 'keyboard cat',
@@ -310,6 +313,16 @@ app.use(require('express-session')({
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.get('/', function(req, res) {
+  if (req.user) {
+    res.redirect('/file-manager');
+  } else {
+    res.sendFile('/node_server/404-teamnotfound/server/ldapauth/index.html');
+  }
+});
+
+app.use(express.static(__dirname + '/ldapauth'));
 
 passport.serializeUser(function(user, done) {
   console.log('\n\n\n' + JSON.stringify(user) + '\n\n\n');
